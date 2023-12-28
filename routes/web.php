@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\auth\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Middleware\Authenticate;
+use App\Http\Middleware\RedirectIfAuthenticated;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -15,10 +17,14 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', [AuthController::class, 'login_view'])->name('login');
-Route::post('/', [AuthController::class, 'login']);
-Route::get('register', [AuthController::class, 'register_view'])->name('register');
-Route::post('register', [AuthController::class, 'register']);
-Route::post('logout', [AuthController::class, 'logout'])->name('logout');
+Route::controller(AuthController::class)->group(function () {
+    Route::middleware(RedirectIfAuthenticated::class)->group(function () {
+        Route::get('/', 'login_view')->name('login');
+        Route::post('/', 'login');
+        Route::get('register', 'register_view')->name('register');
+        Route::post('register', 'register');
+    });
+    Route::post('logout', 'logout')->name('logout');
+});
 
-Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware(Authenticate::class);
